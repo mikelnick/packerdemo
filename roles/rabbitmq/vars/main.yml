@@ -1,0 +1,4 @@
+ERLANG_COOKIE: FSKIKIRLKASTSBBCHETL
+RABBITMQ_MASTER: "{{ groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] }}"
+DEFAULT_RABBITMQ_APPS:
+ - rabbitmq-server

@@ -1,0 +1,5 @@
+---
+ - name: Install RabbitMQ
+   apt: name={{ item }} state=latest update_cache=yes
+   with_items: "{{ DEFAULT_RABBITMQ_APPS }}"
+   register: RABBITMQ_INSTALLED

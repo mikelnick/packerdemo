@@ -1,0 +1,13 @@
+---
+ - name: Add Server Name to Hosts
+   lineinfile: dest=/etc/hosts line="{{ hostvars[item]['ansible_eth0']['ipv4']['address'] }}    {{ hostvars[item]['ansible_hostname'] }}" state=present
+   with_items: groups['tag_Name_' + ENV_NAME + '_rabbitmq']
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname in groups['tag_Name_' + ENV_NAME + '_rabbitmq']
+   
+ - name: Ensure RabbitMQ starts on reboot and is running
+   service: name=rabbitmq-server state=started enabled=yes
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname in groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] and rabbitmq_clustering == true  
+
+ - name: checking to see if already clustered
+   stat: path=/etc/rabbitmq/clustered
+   register: CLUSTERED

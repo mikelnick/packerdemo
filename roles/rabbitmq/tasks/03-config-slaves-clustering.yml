@@ -1,0 +1,45 @@
+---
+ - name: Stop RabbitMQ App
+   command: rabbitmqctl stop_app
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname not in groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] and rabbitmq_clustering == true
+ 
+ - name: Reset RabbitMQ App
+   command: rabbitmqctl reset
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname not in groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] and rabbitmq_clustering == true
+
+ - name: Stop RabbitMQ-server Slaves
+   service: name=rabbitmq-server state=stopped
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname not in groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] and rabbitmq_clustering == true 
+ 
+ - name: Copy Erlang Cookie
+   template: src=erlang.cookie.j2 dest=/var/lib/rabbitmq/.erlang.cookie owner=rabbitmq group=rabbitmq mode=0400 backup=yes
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname not in groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] and rabbitmq_clustering == true
+ 
+ - name: Force kill RabbitMQ-server
+   shell: pkill -u rabbitmq
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname not in groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] and rabbitmq_clustering == true
+
+ - name: Restart RabbitMQ-server Slaves
+   service: name=rabbitmq-server state=restarted
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname not in groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] and rabbitmq_clustering == true
+
+ - name: Stop RabbitMQ App
+   command: rabbitmqctl stop_app
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname not in groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] and rabbitmq_clustering == true   
+
+ - name: Reset RabbitMQ App
+   command: rabbitmqctl reset
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname not in groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] and rabbitmq_clustering == true
+
+ - name: Join RabbitMQ Cluster
+   command: rabbitmqctl join_cluster 'rabbit@{{ hostvars[groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0]]["ansible_hostname"] }}'
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname not in groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] and rabbitmq_clustering == true
+   register: JOINED_CLUSTER
+ 
+ - name: Start RabbitMQ App
+   command: rabbitmqctl start_app
+   when: groups['tag_Name_' + ENV_NAME + '_rabbitmq'] is defined and inventory_hostname not in groups['tag_Name_' + ENV_NAME + '_rabbitmq'][0] and rabbitmq_clustering == true 
+
+ - name: Mark as clustered
+   file: dest=/etc/rabbitmq/clustered state=touch
+   when: JOINED_CLUSTER.changed or CLUSTER_MASTER.changed

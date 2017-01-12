@@ -1,0 +1,10 @@
+---
+- include: 00-install.yml
+- include: 01-config.yml
+- include: 02-config-master-clustering.yml
+  when: CLUSTERED.stat.exists != True
+
+- include: 03-config-slaves-clustering.yml
+  when: CLUSTERED.stat.exists != True
+
+
